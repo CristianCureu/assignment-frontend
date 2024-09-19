@@ -1,0 +1,27 @@
+import { useDraggable } from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
+
+type DraggableProps = {
+  id: string;
+  containerId: string;
+  children: React.ReactNode;
+};
+
+const Draggable = ({ id, containerId, children }: DraggableProps) => {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id,
+    data: { containerId },
+  });
+
+  const style: React.CSSProperties = {
+    visibility: isDragging ? "hidden" : "visible",
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...listeners} {...attributes}>
+      {children}
+    </div>
+  );
+};
+
+export default Draggable;
