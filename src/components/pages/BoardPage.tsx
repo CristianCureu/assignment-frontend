@@ -126,9 +126,6 @@ const BoardPage = () => {
     } = active;
     const { id: destinationContainerId } = over;
 
-    console.log(sourceContainerId);
-    console.log(destinationContainerId);
-
     if (sourceContainerId === destinationContainerId) return;
 
     const sourceTasks = tasks[sourceContainerId];
@@ -223,62 +220,52 @@ const BoardPage = () => {
           >
             <Box sx={{ display: "flex", gap: 2 }}>
               {Object.keys(filteredTasks).map((columnId) => (
-                <Box
+                <Droppable
                   key={columnId}
-                  sx={{
-                    flex: 1,
-                    backgroundColor: "#f5f5f5",
-                    padding: 2,
-                    borderRadius: 1,
-                  }}
+                  id={columnId}
+                  hoverBgColor={columnStyles[columnId].backgroundColor}
                 >
-                  <Grid2
-                    container
-                    alignItems="center"
-                    justifyContent="flex-start"
-                    sx={{ marginBottom: 4 }}
+                  <SortableContext
+                    items={filteredTasks[columnId].map((task) => task._id)}
+                    strategy={verticalListSortingStrategy}
                   >
-                    <Typography>{columnNames[columnId] || columnId}</Typography>
-                    <Typography
-                      sx={{
-                        px: 1.5,
-                        bgcolor: columnStyles[columnId].backgroundColor,
-                        color: columnStyles[columnId].color,
-                        borderRadius: 2,
-                        marginLeft: 2,
-                      }}
+                    <Grid2
+                      container
+                      alignItems="center"
+                      justifyContent="flex-start"
+                      sx={{ marginBottom: 4 }}
                     >
-                      {filteredTasks[columnId].length}
-                    </Typography>
-                  </Grid2>
-                  <Droppable id={columnId}>
-                    <SortableContext
-                      items={filteredTasks[columnId].map((task) => task._id)}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      {filteredTasks[columnId].length === 0 ? (
-                        <Typography>Items</Typography>
-                      ) : (
-                        filteredTasks[columnId].map((task) => (
-                          <Draggable key={task._id} id={task._id} containerId={columnId}>
-                            <TaskComponent task={task} />
-                          </Draggable>
-                        ))
-                      )}
-                    </SortableContext>
-                  </Droppable>
-                </Box>
+                      <Typography>{columnNames[columnId] || columnId}</Typography>
+                      <Typography
+                        sx={{
+                          px: 1.5,
+                          bgcolor: columnStyles[columnId].backgroundColor,
+                          color: columnStyles[columnId].color,
+                          borderRadius: 2,
+                          marginLeft: 2,
+                        }}
+                      >
+                        {filteredTasks[columnId].length}
+                      </Typography>
+                    </Grid2>
+                    {filteredTasks[columnId].length === 0 ? (
+                      <Typography>Items</Typography>
+                    ) : (
+                      filteredTasks[columnId].map((task) => (
+                        <Draggable key={task._id} id={task._id} containerId={columnId}>
+                          <TaskComponent task={task} />
+                        </Draggable>
+                      ))
+                    )}
+                  </SortableContext>
+                </Droppable>
               ))}
             </Box>
             <DragOverlay>
               {activeId ? (
-                <Box sx={{ width: "100%" }}>
-                  {searchFilteredTasks
-                    .filter((task) => task._id === activeId)
-                    .map((task) => (
-                      <TaskComponent key={task._id} task={task} />
-                    ))}
-                </Box>
+                <TaskComponent
+                  task={searchFilteredTasks.find((task) => task._id === activeId)!}
+                />
               ) : null}
             </DragOverlay>
           </DndContext>

@@ -13,8 +13,12 @@ const Draggable = ({ id, containerId, children }: DraggableProps) => {
     data: { containerId },
   });
 
+  // const style: React.CSSProperties = {
+  //   visibility: isDragging ? "hidden" : "visible",
+  // };
+
   const style: React.CSSProperties = {
-    visibility: isDragging ? "hidden" : "visible",
+    transform: CSS.Translate.toString(transform),
   };
 
   return (
