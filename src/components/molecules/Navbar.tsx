@@ -51,7 +51,7 @@ const Navbar = ({ children }: NavbarProps) => {
             backgroundColor: "#04385A",
           },
           "& .MuiListItemText-root .MuiTypography-root": {
-            color: "white", // Set all text to white
+            color: "white",
           },
         }}
       >

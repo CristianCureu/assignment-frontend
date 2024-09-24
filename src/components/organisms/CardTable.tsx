@@ -31,6 +31,7 @@ type CardTableProps = {
   ) => void;
   onRowClick: (card: Card) => void;
   infiniteScrolling: boolean;
+  isFetching: boolean;
 };
 
 const CardTable = ({
@@ -43,12 +44,40 @@ const CardTable = ({
   onRowsPerPageChange,
   onRowClick,
   infiniteScrolling,
+  isFetching,
 }: CardTableProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   return (
-    <TableContainer component={Paper}>
+    <TableContainer
+      component={Paper}
+      sx={{
+        animation: isFetching
+          ? "fadeSlideDown 0.5s ease-in-out"
+          : "fadeSlideUp 0.5s ease-in-out",
+        "@keyframes fadeSlideUp": {
+          "0%": {
+            opacity: 0,
+            transform: "translateY(20px)",
+          },
+          "100%": {
+            opacity: 1,
+            transform: "translateY(0)",
+          },
+        },
+        "@keyframes fadeSlideDown": {
+          "0%": {
+            opacity: 1,
+            transform: "translateY(0)",
+          },
+          "100%": {
+            opacity: 0,
+            transform: "translateY(20px)",
+          },
+        },
+      }}
+    >
       <Table sx={{ minWidth: 500 }} aria-label="custom pagination table">
         <TableBody>
           {cards.map((card, index) => (
@@ -58,6 +87,7 @@ const CardTable = ({
               hover
               onClick={() => onRowClick(card)}
               isMobile={isMobile}
+              isFetching={isFetching}
             >
               {!isMobile && (
                 <>
@@ -103,7 +133,12 @@ const CardTable = ({
           ))}
         </TableBody>
         {!infiniteScrolling && (
-          <TableFooter>
+          <TableFooter
+            sx={{
+              opacity: isFetching ? 0 : 1,
+              transition: "opacity 1s ease-in-out",
+            }}
+          >
             <TableRow>
               <TablePagination
                 rowsPerPageOptions={[1, 5, 10, 25]}
@@ -126,8 +161,10 @@ const CardTable = ({
 export default CardTable;
 
 const ResponsiveTableRow = styled(TableRow, {
-  shouldForwardProp: (prop) => prop !== "isMobile",
-})<{ isMobile: boolean }>(({ isMobile }) => ({
+  shouldForwardProp: (prop) => prop !== "isMobile" && prop !== "isFetching",
+})<{ isMobile: boolean; isFetching: boolean }>(({ isMobile, isFetching }) => ({
   display: "flex",
   flexDirection: isMobile ? "column" : "row",
+  // opacity: isFetching ? 0.5 : 1,
+  // transition: "opacity 0.3s ease",
 }));

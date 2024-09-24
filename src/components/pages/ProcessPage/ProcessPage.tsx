@@ -1,6 +1,7 @@
-import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useInView } from "react-intersection-observer";
 import { useLocation } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   Box,
@@ -10,8 +11,6 @@ import {
   IconButton,
   styled,
   Typography,
-  useMediaQuery,
-  useTheme,
 } from "@mui/material";
 import WidthNormalIcon from "@mui/icons-material/WidthNormal";
 import ViewSidebarIcon from "@mui/icons-material/ViewSidebar";
@@ -25,13 +24,12 @@ import { useCreateCardMutation } from "@hooks/mutations/useCreateCardMutation";
 import CreateCardModal from "@components/organisms/CreateCardModal";
 import SettingsModal from "@components/organisms/SettingsModal";
 import { getProcessCards } from "@services/processService";
+import { calculateInitialRows } from "@utils/processUtils";
 import CardTable from "@components/organisms/CardTable";
 import CardModal from "@components/organisms/CardModal";
 import Navbar from "@components/molecules/Navbar";
 import { useUser } from "@contexts/UserProvider";
 import { Card } from "@src/types/apiTypes";
-import { useInView } from "react-intersection-observer";
-import { calculateInitialRows } from "@utils/processUtils";
 
 const ProcessPage = () => {
   const [cardModalOpen, setCardModalOpen] = useState<boolean>(false);
@@ -62,6 +60,7 @@ const ProcessPage = () => {
     isLoading: paginatedLoading,
     isError: paginatedError,
     error: paginatedErrorMessage,
+    isFetching: paginatedIsFetching,
   } = useQuery({
     queryKey: ["processCards", processId, page, rowsPerPage],
     queryFn: ({ signal }) =>
@@ -77,6 +76,7 @@ const ProcessPage = () => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isFetching: infiniteIsFetching,
   } = useInfiniteQuery({
     queryKey: ["processCards"],
     queryFn: ({ pageParam }) => getProcessCards(processId, pageParam, rowsPerScreen),
@@ -91,6 +91,7 @@ const ProcessPage = () => {
   const isLoading = infiniteScrolling ? infiniteLoading : paginatedLoading;
   const isError = infiniteScrolling ? infiniteError : paginatedError;
   const error = infiniteScrolling ? infiniteErrorMessage : paginatedErrorMessage;
+  const isFetching = infiniteScrolling ? infiniteIsFetching : paginatedIsFetching;
 
   const cards = infiniteScrolling
     ? infiniteData?.pages.flatMap((page) => page.cards) || []
@@ -203,6 +204,7 @@ const ProcessPage = () => {
             page={page}
             rowsPerPage={rowsPerPage}
             infiniteScrolling={infiniteScrolling}
+            isFetching={isFetching}
             onRowClick={handleRowClick}
             onPageChange={handlePageChange}
             onRowsPerPageChange={handleRowsPerPageChange}
@@ -212,7 +214,12 @@ const ProcessPage = () => {
         )}
         {isFetchingNextPage && (
           <Box
-            sx={{ display: "flex", alignItems: "center", justifyContent: "center", p: 2 }}
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              p: 2,
+            }}
           >
             <CircularProgress />
           </Box>
