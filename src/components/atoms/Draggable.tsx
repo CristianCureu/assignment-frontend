@@ -8,13 +8,14 @@ type DraggableProps = {
 };
 
 const Draggable = ({ id, containerId, children }: DraggableProps) => {
-  const { attributes, listeners, setNodeRef, transform } = useDraggable({
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id,
     data: { containerId },
   });
 
   const style: React.CSSProperties = {
     transform: CSS.Translate.toString(transform),
+    visibility: isDragging ? "hidden" : "visible",
   };
 
   return (

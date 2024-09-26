@@ -51,6 +51,13 @@ const columnNames = {
   completed: "Completed",
 };
 
+const priorityOrder = {
+  urgent: 1,
+  high: 2,
+  medium: 3,
+  low: 4,
+};
+
 const BoardPage = () => {
   const [filters, setFilters] = useState<string[]>([]);
   const [tasks, setTasks] = useState<Tasks>({});
@@ -251,11 +258,15 @@ const BoardPage = () => {
                     {filteredTasks[columnId].length === 0 ? (
                       <Typography>Items</Typography>
                     ) : (
-                      filteredTasks[columnId].map((task) => (
-                        <Draggable key={task._id} id={task._id} containerId={columnId}>
-                          <TaskComponent task={task} />
-                        </Draggable>
-                      ))
+                      filteredTasks[columnId]
+                        .sort(
+                          (a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]
+                        )
+                        .map((task) => (
+                          <Draggable key={task._id} id={task._id} containerId={columnId}>
+                            <TaskComponent task={task} />
+                          </Draggable>
+                        ))
                     )}
                   </SortableContext>
                 </Droppable>
