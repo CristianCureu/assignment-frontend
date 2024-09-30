@@ -1,3 +1,4 @@
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -15,19 +16,18 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 
+import ToastNotification, {
+  ToastNotificationProps,
+} from "@components/molecules/ToastNotification";
 import { useDeleteCardMutation } from "@hooks/mutations/useDeleteCardMutation";
 import { useUpdateCardMutation } from "@hooks/mutations/useUpdateCardMutation";
 import CustomModal from "@components/molecules/CustomModal";
+import { getCardById } from "@services/processService";
 import { cardFields } from "@constants/cardFields";
 import { Card, Cards } from "@src/types/apiTypes";
 import { cardSchema } from "@schemas/cardSchema";
 import Form from "@components/molecules/Form";
 import { teal } from "@mui/material/colors";
-import ToastNotification, {
-  ToastNotificationProps,
-} from "@components/molecules/ToastNotification";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getCardById } from "@services/processService";
 
 type CardModalProps = {
   open: boolean;
@@ -57,6 +57,7 @@ const CardModal = ({ open, onClose, cards, initialCard }: CardModalProps) => {
     queryKey: ["card", cards[currentIndex]._id],
     queryFn: ({ signal }) => testPooling(cards[currentIndex]._id, signal),
     enabled: !!cards[currentIndex]._id,
+    staleTime: 5 * 60 * 1000,
   });
 
   useEffect(() => {
@@ -210,6 +211,7 @@ const CardModal = ({ open, onClose, cards, initialCard }: CardModalProps) => {
           </Grid2>
         </Form>
       </Container>
+
       {snackbar.open && (
         <ToastNotification
           open={snackbar.open}
@@ -227,7 +229,7 @@ export default CardModal;
 const Container = styled(Box)(({ theme }) => ({
   paddingRight: 16,
   width: 400,
-  height: "calc(91vh - 40px)",
+  height: "80vh",
   overflowY: "auto",
   marginBottom: 40,
   boxSizing: "content-box",

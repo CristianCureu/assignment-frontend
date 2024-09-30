@@ -165,6 +165,6 @@ const ResponsiveTableRow = styled(TableRow, {
 })<{ isMobile: boolean; isFetching: boolean }>(({ isMobile, isFetching }) => ({
   display: "flex",
   flexDirection: isMobile ? "column" : "row",
-  // opacity: isFetching ? 0.5 : 1,
-  // transition: "opacity 0.3s ease",
+  opacity: isFetching ? 0 : 1,
+  transition: "opacity 0.3s ease",
 }));
