@@ -2,10 +2,12 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
+  arrayMove,
 } from "@dnd-kit/sortable";
 import {
   closestCenter,
   DndContext,
+  DragOverEvent,
   DragOverlay,
   DragStartEvent,
   KeyboardSensor,
@@ -27,20 +29,20 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 
-import { useUpdateTaskMutation } from "@hooks/mutations/useUpdateTaskMutation";
 import FilterUsers from "@components/molecules/FilterUsers";
 import TaskComponent from "@components/molecules/Task";
 import Draggable from "@components/atoms/Draggable";
 import Droppable from "@components/atoms/Droppable";
 import { columnStyles } from "@styles/boardStyles";
 import { getAllUsers } from "@services/userService";
-import { getAllTasks } from "@services/taskService";
+import { getAllTasks, updateTask } from "@services/taskService";
 import Navbar from "@components/molecules/Navbar";
 import { Tasks } from "@src/types/taskTypes";
 import useSearch from "@hooks/useSearch";
 import ToastNotification, {
   ToastNotificationProps,
 } from "@components/molecules/ToastNotification";
+import Sortable from "@components/atoms/Sortable";
 
 const columnOrder = ["to-do", "in-progress", "review", "completed"];
 
@@ -51,17 +53,11 @@ const columnNames = {
   completed: "Completed",
 };
 
-const priorityOrder = {
-  urgent: 1,
-  high: 2,
-  medium: 3,
-  low: 4,
-};
-
 const BoardPage = () => {
   const [filters, setFilters] = useState<string[]>([]);
   const [tasks, setTasks] = useState<Tasks>({});
   const [activeId, setActiveId] = useState(null);
+  const [overItemIndex, setOverItemIndex] = useState(null);
   const [snackbar, setSnackbar] = useState<ToastNotificationProps>({
     open: false,
     message: "",
@@ -103,10 +99,9 @@ const BoardPage = () => {
         return acc;
       }, {});
       setTasks(groupedTasks);
+      console.log("useEffect");
     }
   }, [initialTasks]);
-
-  const updateTaskMutation = useUpdateTaskMutation();
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -119,11 +114,36 @@ const BoardPage = () => {
     setActiveId(event.active.id);
   };
 
+  const handleDragOver = (event: DragOverEvent) => {
+    if (!event.over || !event.over.data.current || !event.over.data.current.containerId) {
+      return;
+    }
+    const {
+      id: overId,
+      data: {
+        current: { containerId: overContainerId },
+      },
+    } = event.over;
+
+    const items = tasks[overContainerId];
+
+    if (!items) return;
+
+    const index = items.findIndex((item) => item._id === overId);
+
+    if (index !== -1) {
+      setOverItemIndex(overId);
+    }
+  };
+
   const handleDragEnd = async (event: any) => {
     const { active, over } = event;
     setActiveId(null);
+    setOverItemIndex(null);
 
-    if (!over) return;
+    if (!over || !over.data.current || !over.data.current.containerId) {
+      return;
+    }
 
     const {
       id: taskId,
@@ -131,9 +151,32 @@ const BoardPage = () => {
         current: { containerId: sourceContainerId },
       },
     } = active;
-    const { id: destinationContainerId } = over;
+    const {
+      id: overItemId,
+      data: {
+        current: { containerId: destinationContainerId },
+      },
+    } = over;
 
-    if (sourceContainerId === destinationContainerId) return;
+    if (sourceContainerId === destinationContainerId) {
+      const items = tasks[sourceContainerId];
+
+      const oldIndex = items.findIndex((task) => task._id === taskId);
+      const newIndex = items.findIndex((task) => task._id === overItemId);
+
+      if (oldIndex === newIndex || newIndex === -1 || oldIndex === -1) {
+        return;
+      }
+
+      const newItems = arrayMove(items, oldIndex, newIndex);
+
+      setTasks((prev) => ({
+        ...prev,
+        [sourceContainerId]: newItems,
+      }));
+
+      return;
+    }
 
     const sourceTasks = tasks[sourceContainerId];
     const destinationTasks = tasks[destinationContainerId];
@@ -145,14 +188,31 @@ const BoardPage = () => {
       status: destinationContainerId,
     };
 
+    const newIndex = destinationTasks.findIndex((task) => task._id === overItemId);
+    const updatedDestinationTasks = [...destinationTasks];
+
+    if (newIndex !== -1) {
+      console.log(newIndex);
+      console.log(updatedDestinationTasks);
+      updatedDestinationTasks.splice(newIndex, 0, updatedTask);
+      console.log(updatedDestinationTasks);
+    } else {
+      updatedDestinationTasks.push(updatedTask);
+    }
+
     setTasks((prev) => ({
       ...prev,
       [sourceContainerId]: sourceTasks.filter((item) => item._id !== taskId),
-      [destinationContainerId]: [...destinationTasks, task],
+      [destinationContainerId]: updatedDestinationTasks,
     }));
 
     try {
-      await updateTaskMutation.mutateAsync(updatedTask);
+      await updateTask(updatedTask);
+      setSnackbar({
+        open: true,
+        message: `Task: ${task.title} moved from "${columnNames[sourceContainerId]}" to "${columnNames[destinationContainerId]}".`,
+        severity: "success",
+      });
     } catch (error) {
       console.error("Failed to update task:", error);
       setTasks((prev) => ({
@@ -175,6 +235,10 @@ const BoardPage = () => {
     );
     return acc;
   }, {} as Tasks);
+
+  useEffect(() => {
+    console.log(filteredTasks);
+  }, [filteredTasks]);
 
   const handleToastClose = () => {
     setSnackbar((prevState) => ({ ...prevState, open: false }));
@@ -223,6 +287,7 @@ const BoardPage = () => {
             sensors={sensors}
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
+            onDragOver={handleDragOver}
             collisionDetection={closestCenter}
           >
             <Box sx={{ display: "flex", gap: 2 }}>
@@ -232,43 +297,52 @@ const BoardPage = () => {
                   id={columnId}
                   hoverBgColor={columnStyles[columnId].backgroundColor}
                 >
-                  <SortableContext
-                    items={filteredTasks[columnId].map((task) => task._id)}
-                    strategy={verticalListSortingStrategy}
+                  <Grid2
+                    container
+                    alignItems="center"
+                    justifyContent="flex-start"
+                    sx={{ marginBottom: 4 }}
                   >
-                    <Grid2
-                      container
-                      alignItems="center"
-                      justifyContent="flex-start"
-                      sx={{ marginBottom: 4 }}
+                    <Typography>{columnNames[columnId] || columnId}</Typography>
+                    <Typography
+                      sx={{
+                        px: 1.5,
+                        bgcolor: columnStyles[columnId].backgroundColor,
+                        color: columnStyles[columnId].color,
+                        borderRadius: 2,
+                        marginLeft: 2,
+                      }}
                     >
-                      <Typography>{columnNames[columnId] || columnId}</Typography>
-                      <Typography
-                        sx={{
-                          px: 1.5,
-                          bgcolor: columnStyles[columnId].backgroundColor,
-                          color: columnStyles[columnId].color,
-                          borderRadius: 2,
-                          marginLeft: 2,
-                        }}
-                      >
-                        {filteredTasks[columnId].length}
-                      </Typography>
-                    </Grid2>
-                    {filteredTasks[columnId].length === 0 ? (
-                      <Typography>Items</Typography>
-                    ) : (
-                      filteredTasks[columnId]
-                        .sort(
-                          (a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]
-                        )
-                        .map((task) => (
-                          <Draggable key={task._id} id={task._id} containerId={columnId}>
-                            <TaskComponent task={task} />
-                          </Draggable>
-                        ))
-                    )}
-                  </SortableContext>
+                      {filteredTasks[columnId].length}
+                    </Typography>
+                  </Grid2>
+                  {filteredTasks[columnId].length === 0 ? (
+                    <Typography>Items</Typography>
+                  ) : (
+                    <SortableContext
+                      items={filteredTasks[columnId].map((task) => task._id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      {filteredTasks[columnId].map((task) => {
+                        return (
+                          <Sortable
+                            key={task._id}
+                            id={task._id}
+                            containerId={columnId}
+                            overItemId={overItemIndex}
+                          >
+                            <Draggable
+                              key={task._id}
+                              id={task._id}
+                              containerId={columnId}
+                            >
+                              <TaskComponent task={task} />
+                            </Draggable>
+                          </Sortable>
+                        );
+                      })}
+                    </SortableContext>
+                  )}
                 </Droppable>
               ))}
             </Box>

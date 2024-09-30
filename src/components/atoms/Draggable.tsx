@@ -1,5 +1,7 @@
-import { useDraggable } from "@dnd-kit/core";
+import { UniqueIdentifier, useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+import { Box, Typography } from "@mui/material";
+import React from "react";
 
 type DraggableProps = {
   id: string;
