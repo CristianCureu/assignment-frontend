@@ -90,7 +90,7 @@ describe("Process", () => {
   test("should render loading, fetch data, and display cards", async () => {
     (getProcessCards as jest.Mock).mockImplementation(
       (processId, offset, limit, signal) => {
-        if (offset === 0 && limit === 5) {
+        if (offset === 0 && limit === 10) {
           return Promise.resolve(mockResponse);
         }
         return Promise.resolve({
@@ -105,7 +105,7 @@ describe("Process", () => {
 
     const processId = "process123";
     const offset = 0;
-    const limit = 5;
+    const limit = 10;
 
     expect(getProcessCards).toHaveBeenCalledWith(
       processId,

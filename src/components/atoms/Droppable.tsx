@@ -1,5 +1,6 @@
-import { useDroppable } from "@dnd-kit/core";
+import { UniqueIdentifier, useDroppable } from "@dnd-kit/core";
 import { Box } from "@mui/material";
+import { useEffect, useState } from "react";
 
 type DroppableContainerProps = {
   id: string;
@@ -8,12 +9,14 @@ type DroppableContainerProps = {
 };
 
 const Droppable = ({ id, hoverBgColor, children }: DroppableContainerProps) => {
-  const { setNodeRef, isOver, active, over } = useDroppable({ id });
+  const { setNodeRef, active, over } = useDroppable({ id });
 
-  const sourceContainerId = active?.data.current.containerId;
-  const destinationContainerId = over?.id;
+  const sourceContainerId = active?.data?.current?.containerId || null;
+  const destinationContainerId = over?.data?.current?.containerId || null;
 
   const isCurrentContainer = sourceContainerId === destinationContainerId;
+
+  const isOver = id === destinationContainerId;
 
   const style: React.CSSProperties = {
     backgroundColor: isOver && !isCurrentContainer ? hoverBgColor : "#f5f5f5",

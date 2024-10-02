@@ -26,7 +26,7 @@ const CreateCardModal = ({
   };
 
   return (
-    <CustomModal open={open} onClose={onClose} orientation="fullscreen">
+    <CustomModal open={open} onClose={onClose}>
       <Container>
         <Form
           fields={createCardFields}
