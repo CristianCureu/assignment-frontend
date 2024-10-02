@@ -33,8 +33,6 @@ const SettingsPage = () => {
     severity: "success",
   });
 
-  console.log(user)
-
   const defaultUsername = user?.email.split("@")[0];
 
   const defaultValues = {

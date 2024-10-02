@@ -36,7 +36,7 @@ const ProcessPage = () => {
   const [createCardModalOpen, setCreateCardModalOpen] = useState<boolean>(false);
   const [settingsModalOpen, setSettingsModalOpen] = useState<boolean>(false);
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
-  const [infiniteScrolling, setInfiniteScrolling] = useState<boolean>(true);
+  const [infiniteScrolling, setInfiniteScrolling] = useState<boolean>(false);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [page, setPage] = useState(0);
   const [snackbar, setSnackbar] = useState<ToastNotificationProps>({
