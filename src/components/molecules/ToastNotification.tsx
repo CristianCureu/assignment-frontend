@@ -1,11 +1,12 @@
+import { ReactNode } from "react";
 import { useState } from "react";
 
 import { TransitionProps } from "@mui/material/transitions";
+import { IconButton, Slide } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 import Snackbar from "@mui/material/Snackbar";
-import Alert from "@mui/material/Alert";
-import { Slide } from "@mui/material";
 import { AlertColor } from "@mui/material";
-import { ReactNode } from "react";
+import Alert from "@mui/material/Alert";
 
 export type ToastNotificationProps = {
   message: ReactNode;
@@ -37,10 +38,10 @@ const ToastNotification = ({
   });
 
   const onClose = () => {
-    setState({
-      ...state,
+    setState((prevState) => ({
+      ...prevState,
       open: false,
-    });
+    }));
     handleClose();
   };
 
@@ -56,7 +57,18 @@ const ToastNotification = ({
         }
       }}
     >
-      <Alert severity={severity}>{message}</Alert>
+      <Alert severity={severity}>
+        {message}
+        <IconButton
+          size="small"
+          aria-label="close"
+          color="inherit"
+          onClick={handleClose}
+          sx={{ ml: 2 }}
+        >
+          <CloseIcon fontSize="small" />
+        </IconButton>
+      </Alert>
     </Snackbar>
   );
 };
