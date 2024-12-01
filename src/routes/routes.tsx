@@ -3,18 +3,17 @@ import GridViewIcon from "@mui/icons-material/GridView";
 import { Navigate, RouteObject } from "react-router-dom";
 import { ReactNode } from "react";
 
-
+import PasswordResetPage from "@components/pages/PasswordResetPage/PasswordResetPage";
 import ProcessesPage from "@components/pages/ProcessesPage/ProcessesPage";
+import RegisterPage from "@components/pages/RegisterPage/RegisterPage";
+import SettingsPage from "@components/pages/SettingsPage/SettingsPage";
 import ProcessPage from "@components/pages/ProcessPage/ProcessPage";
-import PasswordResetPage from "@components/pages/PasswordResetPage";
 import PeopleOutlineIcon from "@mui/icons-material/PeopleOutline";
 import LoginPage from "@components/pages/LoginPage/LoginPage";
-import RegisterPage from "@components/pages/RegisterPage";
-import ErrorPage from "@components/pages/ErrorPage";
+import ErrorPage from "@components/pages/ErrorPage/ErrorPage";
+import BoardPage from "@components/pages/BoardPage";
 import PrivateRoute from "@routes/PrivateRoute";
 import AuthRoute from "@routes/AuthRoutes";
-import BoardPage from "@components/pages/BoardPage";
-import SettingsPage from "@components/pages/SettingsPage";
 
 type CustomRouteObject = RouteObject & {
   private?: boolean;
@@ -27,11 +26,11 @@ export const routes: CustomRouteObject[] = [
   {
     path: "/",
     element: <PrivateRoute element={<Navigate to="/processes" replace />} />,
+    errorElement: <ErrorPage />,
   },
   {
     path: "/login",
     element: <AuthRoute element={<LoginPage />} />,
-    errorElement: <ErrorPage />,
   },
   {
     path: "/register",

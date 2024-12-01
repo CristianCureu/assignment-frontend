@@ -23,4 +23,10 @@ export default {
   },
   setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
   transformIgnorePatterns: ["node_modules/(?!@babel/runtime)"],
+  collectCoverage: true,
+  coverageDirectory: "coverage",
+  collectCoverageFrom: [
+    'src/components/pages/**/*.{js,jsx,ts,tsx}', // Include only files in src/components/pages
+    '!src/components/pages/**/*.d.ts',           // Exclude TypeScript definition files
+  ],
 };

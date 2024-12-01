@@ -37,10 +37,10 @@ const ToastNotification = ({
   });
 
   const onClose = () => {
-    setState({
-      ...state,
+    setState((prevState) => ({
+      ...prevState,
       open: false,
-    });
+    }));
     handleClose();
   };
 

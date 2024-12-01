@@ -50,7 +50,7 @@ const RegisterPage = () => {
       if (success) {
         setSnackbar({
           open: true,
-          message: message || "Account successfully created!",
+          message: message || "Account was successfully created!",
           severity: "success",
           navigateTo: "/login",
         });
